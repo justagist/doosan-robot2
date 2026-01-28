@@ -24,6 +24,14 @@
     <joint name="joint_5" value="0"/>
     <joint name="joint_6" value="0"/>
   </group_state>
+  <group_state name="neutral" group="manipulator">
+    <joint name="joint_1" value="0.0"/>
+    <joint name="joint_2" value="0.5026559999999997"/>
+    <joint name="joint_3" value="1.9547499999999987"/>
+    <joint name="joint_4" value="1.0862575648563238e-35"/>
+    <joint name="joint_5" value="0.6700000002414056"/>
+    <joint name="joint_6" value="0.0"/>
+  </group_state>
 
   <xacro:if value="${grip == 'robotiq_2f85'}">
     <group_state name="all-zeros" group="manipulator_gripper_closed">

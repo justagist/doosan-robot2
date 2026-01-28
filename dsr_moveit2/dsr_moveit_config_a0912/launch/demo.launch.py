@@ -1,7 +1,7 @@
-# 
+#
 #  dsr_moveit2
 #  Author: Minsoo Song (minsoo.song@doosan.com)
-#  
+#
 #  Copyright (c) 2025 Doosan Robotics
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -29,28 +29,29 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    
-    
-    ARGUMENTS =[ 
-        DeclareLaunchArgument('name',  default_value = '',     description = 'NAME_SPACE'     ),
-        DeclareLaunchArgument('host',  default_value = '192.168.137.100', description = 'ROBOT_IP'       ),
-        DeclareLaunchArgument('port',  default_value = '12345',     description = 'ROBOT_PORT'     ),
-        DeclareLaunchArgument('mode',  default_value = 'real',   description = 'OPERATION MODE' ),
-        DeclareLaunchArgument('model', default_value = 'a0912',     description = 'ROBOT_MODEL'    ),
-        DeclareLaunchArgument('color', default_value = 'white',     description = 'ROBOT_COLOR'    ),
-        DeclareLaunchArgument('gz',    default_value = 'false',     description = 'USE GAZEBO SIM'    ),
+    ARGUMENTS = [
+        DeclareLaunchArgument("name", default_value="", description="NAME_SPACE"),
+        DeclareLaunchArgument("host", default_value="192.168.137.100", description="ROBOT_IP"),
+        DeclareLaunchArgument("port", default_value="12345", description="ROBOT_PORT"),
+        DeclareLaunchArgument("mode", default_value="real", description="OPERATION MODE"),
+        DeclareLaunchArgument("model", default_value="a0912", description="ROBOT_MODEL"),
+        DeclareLaunchArgument("color", default_value="white", description="ROBOT_COLOR"),
+        DeclareLaunchArgument("gz", default_value="false", description="USE GAZEBO SIM"),
     ]
 
     # Command-line arguments
-    db_arg = DeclareLaunchArgument(
-        "db", default_value="False", description="Database flag"
-    )
+    db_arg = DeclareLaunchArgument("db", default_value="False", description="Database flag")
 
     moveit_config = (
-        MoveItConfigsBuilder("a0912")
+        MoveItConfigsBuilder(
+            "a0912",
+            package_name="dsr_moveit_config_a0912",
+        )
         .robot_description(file_path="config/a0912.urdf.xacro")
-        .robot_description_semantic(file_path="config/dsr.srdf")
+        .robot_description_semantic(file_path="config/dsr.srdf.xacro")
         .trajectory_execution(file_path="config/moveit_controllers.yaml")
+        .planning_pipelines("pilz_industrial_motion_planner", pipelines=["pilz_industrial_motion_planner"])
+        .pilz_cartesian_limits(file_path="config/pilz_cartesian_limits.yaml")
         .to_moveit_configs()
     )
 
@@ -64,9 +65,7 @@ def generate_launch_description():
     )
 
     # RViz
-    rviz_base = os.path.join(
-        get_package_share_directory("dsr_moveit_config_a0912"), "launch"
-    )
+    rviz_base = os.path.join(get_package_share_directory("dsr_moveit_config_a0912"), "launch")
     rviz_full_config = os.path.join(rviz_base, "moveit.rviz")
 
     rviz_node = Node(
@@ -98,12 +97,12 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         name="robot_state_publisher",
-        remappings=[
-            (
-                "/joint_states",
-                "/dsr01/joint_states",
-            ),
-        ],
+        # remappings=[
+        #     (
+        #         "/joint_states",
+        #         "/dsr01/joint_states",
+        #     ),
+        # ],
         output="both",
         parameters=[moveit_config.robot_description],
     )
@@ -123,7 +122,7 @@ def generate_launch_description():
                 [
                     FindPackageShare("dsr_description2"),
                     "xacro",
-                    LaunchConfiguration('model'),
+                    LaunchConfiguration("model"),
                 ]
             ),
             ".urdf.xacro",
@@ -136,12 +135,11 @@ def generate_launch_description():
     #     get_package_share_directory("dsr_controller2"),
     #     "config",
     #     "dsr_controller2.yaml",
-    # )   
+    # )
     ros2_control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[ros2_controllers_path],
-
         # parameters=[robot_description, ros2_controllers_path],
         remappings=[
             ("/controller_manager/robot_description", "/robot_description"),
@@ -189,8 +187,9 @@ def generate_launch_description():
     #     condition=IfCondition(db_config),
     # )
 
-    return LaunchDescription(ARGUMENTS +
-        [
+    return LaunchDescription(
+        ARGUMENTS
+        + [
             db_arg,
             rviz_node,
             static_tf,
