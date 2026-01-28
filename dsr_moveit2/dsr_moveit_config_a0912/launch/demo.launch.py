@@ -37,6 +37,7 @@ def generate_launch_description():
         DeclareLaunchArgument("model", default_value="a0912", description="ROBOT_MODEL"),
         DeclareLaunchArgument("color", default_value="white", description="ROBOT_COLOR"),
         DeclareLaunchArgument("gz", default_value="false", description="USE GAZEBO SIM"),
+        DeclareLaunchArgument("rviz", default_value="true", description="START RVIZ")
     ]
 
     # Command-line arguments
@@ -81,6 +82,7 @@ def generate_launch_description():
             moveit_config.planning_pipelines,
             moveit_config.robot_description_kinematics,
         ],
+        condition=IfCondition(LaunchConfiguration("rviz")),
     )
 
     # Static TF
